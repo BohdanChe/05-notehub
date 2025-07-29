@@ -4,6 +4,7 @@ import type { Note, NoteTag } from '../types/note';
 const BASE_URL = 'https://notehub-public.goit.study/api';
 const TOKEN = import.meta.env.VITE_NOTEHUB_TOKEN;
 const axiosInstance = axios.create({
+  
   baseURL: BASE_URL,
   headers: { Authorization: `Bearer ${TOKEN}` },
 });
@@ -23,7 +24,11 @@ export interface FetchNotesResponse {
 export const fetchNotes = async (
   params: FetchNotesParams = {}
 ): Promise<FetchNotesResponse> => {
-  const response = await axiosInstance.get('/notes', { params });
+  const cleanParams = Object.fromEntries(
+    Object.entries(params).filter(([_, v]) => v !== undefined && v !== null)
+  );
+
+  const response = await axiosInstance.get('/notes', { params: cleanParams });
   return response.data;
 };
 
