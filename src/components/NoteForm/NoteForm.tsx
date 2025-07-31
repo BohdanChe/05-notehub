@@ -1,40 +1,66 @@
 import React from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
-import type { FormikHelpers } from 'formik';
 import * as Yup from 'yup';
+import type { FormikHelpers } from 'formik';
 import type { NoteTag } from '../../types/note';
+import { createNote } from '../../services/noteService';
 import css from './NoteForm.module.css';
 
 interface NoteFormProps {
-  onSubmit: (note: FormValues) => void;
   onCancel: () => void;
 }
 
 interface FormValues {
   title: string;
-  content: string;
+  content?: string;
   tag: NoteTag;
 }
 
 const TAG_OPTIONS: NoteTag[] = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'];
 
 const validationSchema: Yup.ObjectSchema<FormValues> = Yup.object({
-    title: Yup.string().min(3, 'Min 3 characters').max(50, 'Max 50 characters').required('Title is required'),
-    content: Yup.string().max(500, 'Max 500 characters').required('Content is required'),
-    tag: Yup.mixed<NoteTag>().oneOf(TAG_OPTIONS).required('Tag is required'),
-  });
-   
+  title: Yup.string()
+    .min(3, 'Min 3 characters')
+    .max(50, 'Max 50 characters')
+    .required('Title is required'),
 
-const NoteForm: React.FC<NoteFormProps> = ({ onSubmit, onCancel }) => {
-  const initialValues: FormValues = { title: '', content: '', tag: 'Todo' };
+  content: Yup.string()
+    .max(500, 'Max 500 characters'), // не required
+
+  tag: Yup.mixed<NoteTag>()
+    .oneOf(TAG_OPTIONS)
+    .required('Tag is required'),
+});
+
+
+const NoteForm: React.FC<NoteFormProps> = ({ onCancel }) => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: createNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+      onCancel(); // Закриває форму
+    },
+  });
+
+  const initialValues: FormValues = {
+    title: '',
+    content: '',
+    tag: 'Todo',
+  };
 
   return (
     <Formik
       initialValues={initialValues}
       validationSchema={validationSchema}
-      onSubmit={(values, { setSubmitting }: FormikHelpers<FormValues>) => {
-        onSubmit(values);
-        setSubmitting(false);
+      onSubmit={(values: FormValues, helpers) => {
+        mutation.mutate({
+          ...values,
+          content: values.content ?? '', // ← гарантує, що буде string, не undefined
+        });
+        helpers.setSubmitting(false);
       }}
     >
       {({ isSubmitting }) => (
