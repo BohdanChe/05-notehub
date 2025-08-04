@@ -7,7 +7,7 @@ const TOKEN = import.meta.env.VITE_NOTEHUB_TOKEN;
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
-    Authorization: `Bearer ${TOKEN}`,
+    Authorization: `Bearer ${TOKEN}`
   },
 });
 

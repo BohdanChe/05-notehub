@@ -27,7 +27,7 @@ const NoteList: React.FC<NoteListProps> = ({ notes }) => {
       {notes.map(note => (
         <li key={note.id} className={css.card}>
           <h3 className={css.title}>{note.title}</h3>
-          {note.content && <p className={css.content}>{note.content}</p>}
+          <p className={css.content}>{note.content}</p>
           <span className={css.tag}>{note.tag}</span>
           <button className={css.deleteButton} onClick={() => handleDelete(note.id)}>
             Delete
